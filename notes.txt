@@ -1,0 +1,57 @@
+---> Espacio de trabajo
+LFS /data/2024/uhadoop/projects/group_22
+HDFS /uhadoop2024/projects/group_22
+
+---> Para subir la data
+Option 1: download locally and transfer via SCP
+Option 2: download directly to cluster-01 with curl or wget; transfer to HDFS; delete from cluster-01 ***
+
+---> Data utilizada en https://www.dtpm.cl/index.php/documentos/matrices-de-viaje
+Abril (días 17, 18, 19, 20, 21, 22 y 23)
+Tablas de Subidas y Bajadas
+Tabla de Viajes (.csv) y Estructura de Tabla de Viajes (.txt)
+Tabla de Etapas (.csv)  y Estructura de Tabla de Etapas (.txt) ***
+
+---> Enlace de archivo escogido (etapas)
+https://www.dtpm.cl/descargas/modelos_y_matrices/etapas_042023_17al23_transparencia.zip
+
+---> Recomendaciones profe
+Comprimir con bzip2
+Use replication factor 1 if file is big
+hdfs dfs -D dfs.replication=1 -copyFromLocal bigfile.tsv /uhadoop2024/projects/mygroup/
+Usar samples
+
+============================================
+
+---> Conectarse a servidor
+...
+
+---> Crear directorio en LFS
+cd projects
+mkdir group_22
+
+---> Descargar con wget
+wget https://www.dtpm.cl/descargas/modelos_y_matrices/etapas_042023_17al23_transparencia.zip -O etapas_full.zip
+
+---> Descomprimir, resultado se llama etapas_042023_17al23.csv
+unzip etapas_full.zip
+
+---> Usar bzip2 para comprimir de nuevo, esta vez a un bz
+bzip2 etapas_042023_17al23.csv
+
+???
+
+---> Copiar al HDFS
+hdfs dfs -D dfs.replication=1 -copyFromLocal etapas_042023_17al23.bz /uhadoop2024/projects/group_22/
+
+============================================
+
+Group number: 22
+
+Project title: Detecting bursts of boarding passengers in bus routes
+
+Data used: Matrices de Viaje dataset available here, contains information about trips on public transport in Santiago, Chile, including boarding and alight locations and timestamps in 10.824.610 rows and 100 columns (There is a lot more information).
+
+Technology used: Kafka.
+
+Main objective: We are planning to simulate a stream of the data from where we can detect bursts of people boarding on a specific train station. Concretely, we want to analyze the 506 bus route (still deciding if we will use specifically this bus route) to detect the location and time of the top x bursts of people entering the system per day. This would be useful to support decisions about transport demand planning.
