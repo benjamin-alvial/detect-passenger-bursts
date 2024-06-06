@@ -39,10 +39,14 @@ unzip etapas_full.zip
 ---> Usar bzip2 para comprimir de nuevo, esta vez a un bz
 bzip2 etapas_042023_17al23.csv
 
-???
+---> Renombrar
+mv etapas_042023_17al23.csv.bz2 full.csv.bz2
 
 ---> Copiar al HDFS
-hdfs dfs -D dfs.replication=1 -copyFromLocal etapas_042023_17al23.bz /uhadoop2024/projects/group_22/
+hdfs dfs -D dfs.replication=1 -copyFromLocal full.csv.bz2 /uhadoop2024/projects/group_22/
+
+---> Revisar que está copiado
+hdfs dfs -ls /uhadoop2024/projects/group_22
 
 ============================================
 
