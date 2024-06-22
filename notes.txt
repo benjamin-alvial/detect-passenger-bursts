@@ -50,6 +50,25 @@ hdfs dfs -ls /uhadoop2024/projects/group_22
 
 ============================================
 
+Resumen lab 6.
+
+TwitterSimulator -> producer on TOPIC
+java -jar mdp-kafka.jar TwitterSimulator [DATA] [TOPIC] 1000
+
+PrintEarthquakeTweets -> consumer of TOPIC
+java -jar mdp-kafka.jar PrintEarthquakeTweets [TOPIC]
+
+EarthquakeFilter -> consumer of TOPIC1, producer on TOPIC2
+java -jar mdp-kafka.jar EarthquakeFilter [TOPIC1] [TOPIC2]
+
+BurstDetector -> consumer of TOPIC
+java -jar mdp-kafka.jar BurstDetector [TOPIC]
+
+Crear topic
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic [NAME]
+
+============================================
+
 Group number: 22
 
 Project title: Detecting bursts of boarding passengers in bus routes
