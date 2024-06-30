@@ -67,7 +67,59 @@ java -jar mdp-kafka.jar BurstDetector [TOPIC]
 Crear topic
 kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic [NAME]
 
+Eliminar topic
+kafka-topics.sh --delete --zookeeper localhost:2181 --topic [NAME]
+
 ============================================
+
+Comandos para correr proyecto.
+
+Copiar .jar a servidor (LFS), desde terminal local
+scp -P 220 C:\Users\benja\Desktop\detect-passenger-bursts\mdp-kafka\dist\mdp-kafka.jar uhadoop@cm.dcc.uchile.cl:/data/2024/uhadoop/projects/group_22/kafka
+
+Crear topic
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic boardings
+
+Correr el .jar (NO FUNCIONA DIRECTO CON DATA EN HDFS)
+java -jar mdp-kafka.jar TwitterSimulator hdfs://cm:9000/uhadoop2024/projects/group_22/codeswap/out6/part-r-00000 boardings 1000
+java -jar mdp-kafka.jar PrintEarthquakeTweets boardings
+
+OTRA OPCIÓN: COPIAR AL LFS EN CARPETA TESTING...
+hdfs dfs -get /uhadoop2024/projects/group_22/codeswap/out6/part-r-00000 /data/2024/uhadoop/projects/group_22/testing
+java -jar mdp-kafka.jar TwitterSimulator /data/2024/uhadoop/projects/group_22/testing/part-r-00000 boardings 1000
+java -jar mdp-kafka.jar PrintEarthquakeTweets boardings
+
+--------------------------------------------
+
+Crear topic
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic boardings-filtered
+
+Correr el .jar
+java -jar mdp-kafka.jar BurstDetector boardings-filtered
+java -jar mdp-kafka.jar EarthquakeFilter boardings boardings-filtered
+java -jar mdp-kafka.jar TwitterSimulator /data/2024/uhadoop/projects/group_22/testing/part-r-00000 boardings 1000
+
+============================================
+
+Extra
+
+zcat /data/uhadoop/shared/twitter/tweets_20170919.tsv.gz | more
+2017-09-19 00:00:00     2012-09-07 02:26:19     243897957391429632      801852456       RT_ROOT en      Tha
+t awkward moment when u are at the skatepark scootering and the only people there are skaters smoking weed.
+ #scootscoot #skootkrew #meow   2
+2017-09-19 00:00:00     2017-09-14 02:20:01     908153333185236992      1518087734      RT_ROOT en      If
+the police say "Hang tight "your ass is going to jail ? 1274
+...
+
+hdfs dfs -cat /uhadoop2024/projects/group_22/codeswap/out6/part-r-00000 | more
+PB1690  2023-04-17 05:29:25.000
+PG1666  2023-04-17 05:46:19.000
+PB1060  2023-04-17 05:48:44.000
+PF759   2023-04-17 05:49:14.000
+...
+
+============================================
+
 
 Group number: 22
 
