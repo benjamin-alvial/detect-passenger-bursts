@@ -11,7 +11,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 
 public class TwitterStream implements Runnable {
 	// cannot be static since not synchronised
-	public final SimpleDateFormat TWITTER_DATE = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	public final SimpleDateFormat TWITTER_DATE = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	
 	BufferedReader br;
 	long startSim = 0;
@@ -39,18 +39,23 @@ public class TwitterStream implements Runnable {
 	public void run() {
 		String line;
 		long wait = 0;
+		int idd = 0;
+		//System.out.println("PROBANDOOOOOOOOOOOOOOOOOOOOOOOOO");
 		try{
 			while((line = br.readLine())!=null){
 				String[] tabs = line.split("\t");
-				if(tabs.length>id){
+				//System.out.println(tabs[1]);
+				if(tabs.length>0){
 					try{
-						long timeData = getUnixTime(tabs[0]);
+						long timeData = getUnixTime(tabs[1]);
+						//System.out.println(timeData);
 						if(startData == 0) // first element read
 							startData = timeData;
 						
 						wait = calculateWait(timeData);
 						
-						String idStr = tabs[id];
+						//String idStr = tabs[id];
+						String idStr = Integer.toString(idd);
 						
 						if(wait>0){
 							Thread.sleep(wait);

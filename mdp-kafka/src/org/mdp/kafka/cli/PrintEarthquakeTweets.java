@@ -43,14 +43,14 @@ public class PrintEarthquakeTweets {
 					
 					// check if record value contains keyword
 					// (could be optimised a lot)
-					for(String ek: EARTHQUAKE_SUBSTRINGS){
+					//for(String ek: EARTHQUAKE_SUBSTRINGS){
 						// if so print it out to the console
-						if(lowercase.contains(ek)){
+						//if(lowercase.contains(ek)){
 							System.out.println(record.value());
 							// prevents multiple prints of the same tweet with multiple keywords
-							break;
-						}
-					}
+							//break;
+						//}
+					//}
 				}
 			}
 		} finally{
