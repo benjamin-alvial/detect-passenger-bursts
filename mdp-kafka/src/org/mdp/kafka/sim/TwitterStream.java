@@ -43,12 +43,13 @@ public class TwitterStream implements Runnable {
 		//System.out.println("PROBANDOOOOOOOOOOOOOOOOOOOOOOOOO");
 		try{
 			while((line = br.readLine())!=null){
+				System.out.println(line);
 				String[] tabs = line.split("\t");
 				//System.out.println(tabs[1]);
 				if(tabs.length>0){
 					try{
 						long timeData = getUnixTime(tabs[1]);
-						//System.out.println(timeData);
+						//System.out.println(tabs[1]);
 						if(startData == 0) // first element read
 							startData = timeData;
 						

@@ -77,15 +77,20 @@ Comandos para correr proyecto.
 Copiar .jar a servidor (LFS), desde terminal local
 scp -P 220 C:\Users\benja\Desktop\detect-passenger-bursts\mdp-kafka\dist\mdp-kafka.jar uhadoop@cm.dcc.uchile.cl:/data/2024/uhadoop/projects/group_22/kafka
 
+Copiar diccionario a servidor (LFS), desde terminal local
+scp -P 220 C:\Users\benja\Downloads\diccionario_codigo_paradero_final.csv uhadoop@cm.dcc.uchile.cl:/data/2024/uhadoop/projects/group_22/
+
+--------------------------------------------
+
 Crear topic
 kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic boardings
 
 Correr el .jar (NO FUNCIONA DIRECTO CON DATA EN HDFS)
-java -jar mdp-kafka.jar TwitterSimulator hdfs://cm:9000/uhadoop2024/projects/group_22/codeswap/out6/part-r-00000 boardings 1000
+java -jar mdp-kafka.jar TwitterSimulator hdfs://cm:9000/uhadoop2024/projects/group_22/sorting/out4/part-r-00000 boardings 1000
 java -jar mdp-kafka.jar PrintEarthquakeTweets boardings
 
 OTRA OPCIÓN: COPIAR AL LFS EN CARPETA TESTING...
-hdfs dfs -get /uhadoop2024/projects/group_22/codeswap/out6/part-r-00000 /data/2024/uhadoop/projects/group_22/testing
+hdfs dfs -get /uhadoop2024/projects/group_22/sorting/out4/part-r-00000 /data/2024/uhadoop/projects/group_22/testing
 java -jar mdp-kafka.jar TwitterSimulator /data/2024/uhadoop/projects/group_22/testing/part-r-00000 boardings 1000
 java -jar mdp-kafka.jar PrintEarthquakeTweets boardings
 
@@ -118,8 +123,11 @@ PB1060  2023-04-17 05:48:44.000
 PF759   2023-04-17 05:49:14.000
 ...
 
-============================================
-
+hdfs dfs -cat hdfs://cm:9000/uhadoop2024/projects/group_22/sorting/out4/part-r-00000 | more
+"par_subida"    "tiempo_subida"##"tipo_transporte"##"servicio_subida"
+L-17-24-30-SN   2023-04-17 00:05:27.000##BUS##T1103 00R
+L-26-38-5-PO    2023-04-17 00:05:40.000##BUS##T353 03I
+L-17-46-5-NS    2023-04-17 00:05:58.000##BUS##T451 00R
 
 Group number: 22
 
