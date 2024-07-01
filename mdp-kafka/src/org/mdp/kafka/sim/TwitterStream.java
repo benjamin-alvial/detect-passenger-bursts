@@ -40,16 +40,19 @@ public class TwitterStream implements Runnable {
 		String line;
 		long wait = 0;
 		int idd = 0;
-		//System.out.println("PROBANDOOOOOOOOOOOOOOOOOOOOOOOOO");
+
 		try{
+			// Lines are of the type
+			// L-17-24-30-SN   2023-04-17 00:05:27.000##BUS##T1103 00R
 			while((line = br.readLine())!=null){
-				System.out.println(line);
+
 				String[] tabs = line.split("\t");
-				//System.out.println(tabs[1]);
+
 				if(tabs.length>0){
 					try{
-						long timeData = getUnixTime(tabs[1]);
-						//System.out.println(tabs[1]);
+					
+						long timeData = getUnixTime(tabs[1].split("##")[0]);
+
 						if(startData == 0) // first element read
 							startData = timeData;
 						
@@ -57,11 +60,18 @@ public class TwitterStream implements Runnable {
 						
 						//String idStr = tabs[id];
 						String idStr = Integer.toString(idd);
+						idd++;
 						
 						if(wait>0){
 							Thread.sleep(wait);
 						}
-						producer.send(new ProducerRecord<String,String>(topic, 0, timeData, idStr, line));
+						
+						String newLine = tabs[0] + "##" + tabs[1];
+						
+						// The newLine sent is of the type
+						// L-26-38-5-PO##2023-04-17 00:05:40.000##BUS##T353 03I
+						System.out.println(newLine);
+						producer.send(new ProducerRecord<String,String>(topic, 0, timeData, idStr, newLine));
 					} catch(ParseException | NumberFormatException pe){
 						System.err.println("Cannot parse date "+tabs[0]);
 					}
