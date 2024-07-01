@@ -21,7 +21,8 @@ public class TwitterSimulator {
 			return;
 		}
 		
-		BufferedReader tweets = new BufferedReader(new InputStreamReader(new GZIPInputStream (new FileInputStream(args[0]))));
+		BufferedReader tweets = new BufferedReader(new InputStreamReader(new FileInputStream(args[0])));
+		//BufferedReader tweets = new BufferedReader(new InputStreamReader(new GZIPInputStream (new FileInputStream(args[0]))));
 		
 		String tweetTopic = args[1];
 		

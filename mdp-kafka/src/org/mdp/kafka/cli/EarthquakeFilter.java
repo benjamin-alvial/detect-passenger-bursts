@@ -7,10 +7,14 @@
 
 package org.mdp.kafka.cli;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -34,7 +38,26 @@ public class EarthquakeFilter {
 		}
 		
 		Properties props = KafkaConstants.PROPS;
-
+		
+		// The dictionary is created as a HashMap
+		// The original csv dictionary has lines of the form
+		// micro,paradero,codigo_ts,codigo,comuna,nombre_paradero
+		// 201,PB241,T-3-374-NS-5,,HUECHURABA,Parada / Mall Plaza Norte - Los Libertadores
+		final HashMap<String, String> translationMap = new HashMap<>();
+		BufferedReader reader = new BufferedReader(new InputStreamReader (new FileInputStream ("/data/2024/uhadoop/projects/group_22/diccionario_codigo_paradero_final.csv")));
+		String line;
+		while ((line = reader.readLine()) != null) {
+			String[] parts = line.split(",");
+			if (parts.length == 6) {
+				String key = parts[2]; // example T-3-374-NS-5
+				String value = parts[0] + "," + parts[1] + "," + parts[4] + "," + parts[5]; // example 201,PB241,,HUECHURABA,Parada / Mall Plaza Norte - Los Libertadores
+				System.out.println(key);
+				System.out.println(value);
+				translationMap.put(key, value);
+			}
+		}
+		reader.close();
+		
 		// randomise consumer ID so messages cannot be read by another consumer
 		//   (or at least it's more likely that a meteor wipes out life on Earth)
 		props.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
@@ -51,17 +74,34 @@ public class EarthquakeFilter {
 				
 				// for all records in the batch
 				for (ConsumerRecord<String, String> record : records) {
-					String lowercase = record.value().toLowerCase();
 					
-					// check if record value contains keyword
-					// (could be optimised a lot)
-					for(String ek: EARTHQUAKE_SUBSTRINGS){
-						// if so print it out to the console
-						if(lowercase.contains(ek)){
-							//System.out.println(record.value());
-							producer.send(new ProducerRecord<>(args[1], 0, record.timestamp(), record.key(), record.value()));
-							// prevents multiple prints of the same tweet with multiple keywords
-							break;
+					// here, record.value() is for example
+					// L-26-38-5-PO##2023-04-17 00:05:40.000##BUS##T353 03I
+					String[] boardingInfo = record.value().split("##");
+					String stopCodeToLookUp = boardingInfo[0];
+					String timeData = boardingInfo[1];
+					String modeType = boardingInfo[2];
+					String extraCode = boardingInfo[3];
+
+					// and translationMap is...
+					// key: T-3-374-NS-5
+					// value: 201,PB241,,HUECHURABA,Parada / Mall Plaza Norte - Los Libertadores
+					String dictionaryInfo = translationMap.get(stopCodeToLookUp);
+					
+					if (dictionaryInfo != null) {
+						
+						String[] infoParts = dictionaryInfo.split(",");
+						String busRoute = infoParts[0];
+						String stopNiceCode = infoParts[1];
+						String stopCommune = infoParts[2];
+						String stopLiteralName = infoParts[3];
+						
+						// Generate a record with all the useful information separated by ##
+						String newRecord = record.value() + "##" + busRoute + "##" + stopNiceCode + "##" + stopCommune + "##" + stopLiteralName;
+
+						if(busRoute.equals("506") || busRoute.equals("506v")) {
+							System.out.println(newRecord);
+							producer.send(new ProducerRecord<>(args[1], 0, record.timestamp(), record.key(), newRecord));
 						}
 					}
 				}

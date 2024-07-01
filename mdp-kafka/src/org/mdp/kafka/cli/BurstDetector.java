@@ -10,7 +10,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -39,13 +42,15 @@ public class BurstDetector {
 		
 		consumer.subscribe(Arrays.asList(args[0]));
 		
-		final int FIFO_SIZE = 50;
-		final int EVENT_START_TIME_INTERVAL = 50 * 1000;
+		// three passengers in 60 seconds, end event after 120 seconds
+		final int FIFO_SIZE = 3;
+		final int EVENT_START_TIME_INTERVAL = 60 * 1000;	
 		final int EVENT_END_TIME_INTERVAL = 2 * EVENT_START_TIME_INTERVAL;
 		
-		LinkedList<ConsumerRecord<String, String>> fifo = new LinkedList<ConsumerRecord<String, String>>();
+		// Map of queues and map of events for each unique bus stop
+		final Map<String, LinkedList<ConsumerRecord<String, String>>> queuesMap = new HashMap<>();
+	    final Map<String, Boolean> inEventMap = new HashMap<>();
 		
-		boolean inEvent = false;
 		int events = 0;
 			
 		try{
@@ -55,36 +60,47 @@ public class BurstDetector {
 				
 				// for all records in the batch
 				for (ConsumerRecord<String, String> record : records) {
-					String lowercase = record.value().toLowerCase();
 					
-					// check if record value contains keyword
-					// (could be optimised a lot)
-					for(String ek: EARTHQUAKE_SUBSTRINGS){
-						// if so print it out to the console
-						
-						if(lowercase.contains(ek)){
+					// Extract the stopCode (example: PB241)
+					String stopCode = record.value().split("##")[0];
+					// We will want to extract associated queue and inEvent variable
+					LinkedList<ConsumerRecord<String, String>> fifo;
+					boolean inEvent;
+					
+					if(queuesMap.get(stopCode) == null) {
+						// For each new unique stopCode not present in the maps, create a queue and inEvent variable
+						fifo = new LinkedList<ConsumerRecord<String, String>>();
+						inEvent = false;
+						queuesMap.put(stopCode, fifo);
+						inEventMap.put(stopCode, inEvent);
+					}
+					
+					else {
+						// If the stopCode already exists, extract its queue and inEvent variable
+						fifo = queuesMap.get(stopCode);
+						inEvent = inEventMap.get(stopCode);
+					}
+					
+					fifo.add(record);
 							
-							fifo.add(record);
-							
-							if(fifo.size()>=FIFO_SIZE) {
+					if(fifo.size()>=FIFO_SIZE) {
 								
-								ConsumerRecord<String, String> oldest = fifo.removeFirst();
-								long gap = record.timestamp() - oldest.timestamp();
+						ConsumerRecord<String, String> oldest = fifo.removeFirst();
+						long gap = record.timestamp() - oldest.timestamp();
 								
-								if(gap <= EVENT_START_TIME_INTERVAL && !inEvent) {
-									inEvent = true;
-									System.out.println("START event-id:"+ events +": start:"+oldest.timestamp()+" value:"+oldest.value()+" rate:"+FIFO_SIZE+" records in "+gap+" ms");
-									events++;
-								} else if(gap >= EVENT_END_TIME_INTERVAL && inEvent) {
-									inEvent = false;
-									System.out.println("END event:"+events+" rate:"+FIFO_SIZE+" records in "+gap+" ms");
-								}
-							}
-							
-							//System.out.println(record.value());
-							// prevents multiple prints of the same tweet with multiple keywords
-							break;
+						if(gap <= EVENT_START_TIME_INTERVAL && !inEvent) {
+							inEventMap.put(stopCode,  true);
+							String timeData = oldest.value().split("##")[1];
+							String busRoute = oldest.value().split("##")[4];
+							String stopNiceCode = oldest.value().split("##")[5];
+							String stopLiteralName = oldest.value().split("##")[7];
+							System.out.println("START EVENT:  id " + events + " at " + timeData + " on route " + busRoute + " on stop " + stopNiceCode + " (" + stopLiteralName + ")");
+							events++;
+						} else if(gap >= EVENT_END_TIME_INTERVAL && inEvent) {
+							inEventMap.put(stopCode,  false);
+							System.out.println("END EVENT: id " + events + " at rate " + FIFO_SIZE + " boardings in " + gap/60000 + " min");
 						}
+
 					}
 				}
 			}
